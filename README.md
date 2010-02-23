@@ -6,5 +6,5 @@ Communicate with a monome via the serial port. Receive button events, illuminate
 Contributors
 ------------
 
-Sam Aaron
-Jeff Rose
+* Sam Aaron
+* Jeff Rose
