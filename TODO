@@ -1,0 +1,4 @@
+* Set up serial connection
+* Receive and print events from the monome
+* Implement protocol with byte-spec
+* Sing a song of multitude.
