@@ -1,26 +1,34 @@
 (ns monome-serial.connector
-  (:import 
-     (java.io DataInputStream DataOutputStream
-              BufferedInputStream BufferedOutputStream
-              ByteArrayOutputStream ByteArrayInputStream)
-     (gnu.io CommPortIdentifier CommPort SerialPort))
+  (:import
+   (java.io DataInputStream
+            DataOutputStream
+            BufferedInputStream
+            BufferedOutputStream
+            ByteArrayOutputStream
+            ByteArrayInputStream)
+
+   (gnu.io  CommPortIdentifier
+            CommPort
+            SerialPort
+            SerialPortEventListener))
+
   (:use byte-spec))
 
 (def PORT-OPEN-TIMEOUT 2000)
 
-(defn ports [] (enumeration-seq (CommPortIdentifier/getPortIdentifiers)))
+(defn port-ids [] (enumeration-seq (CommPortIdentifier/getPortIdentifiers)))
 
-(defn list-ports []
-  (doseq [port (ports)] 
-    (println "PORT: " (.getName port))))
+(defn list-port-ids []
+  (doseq [port-id (port-ids)]
+    (println "PORT: " (.getName port-id))))
 
-(defn get-port [pname]
-  (let [port-id (first (filter #(= pname (.getName %)) (ports)))
+(defn open-port [pname]
+  (let [port-id (first (filter #(= pname (.getName %)) (port-ids)))
         port (.open port-id "monome" PORT-OPEN-TIMEOUT)]
     port))
 
-(defn monome []
-  (let [port (get-port "/dev/ttyUSB0")
+(defn monome [path]
+  (let [port (open-port path)
         os (.getOutputStream port)
         is (.getInputStream port)
         bs (ByteArrayOutputStream.)
