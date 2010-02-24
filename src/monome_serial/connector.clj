@@ -1,36 +1,42 @@
 (ns monome-serial.connector
   (:refer-clojure :exclude [test])
-  (:import 
-     (java.io DataInputStream DataOutputStream
-              BufferedInputStream BufferedOutputStream
-              ByteArrayOutputStream ByteArrayInputStream)
-     (gnu.io CommPortIdentifier CommPort SerialPort SerialPortEventListener
-             SerialPortEvent))
-  (:use byte-spec))
+  (:import
+     (java.io DataInputStream
+              DataOutputStream
+              BufferedInputStream
+              BufferedOutputStream
+              ByteArrayOutputStream
+              ByteArrayInputStream)
+
+     (gnu.io  CommPortIdentifier
+             CommPort
+             SerialPort
+             SerialPortEventListener
+             SerialPortEvent)))
 
 (def PORT-OPEN-TIMEOUT 2000)
 
-(defn ports [] (enumeration-seq (CommPortIdentifier/getPortIdentifiers)))
+(defn port-ids [] (enumeration-seq (CommPortIdentifier/getPortIdentifiers)))
 
 (defn port 
-  "Returns an opened serial port by name.
-  
+  "Returns an opened serial port. 
+
   (port \"/dev/ttyUSB0\")
   "
-  [pname]
-  (let [port-id (first (filter #(= pname (.getName %)) (ports)))
+  [path]
+  (let [port-id (first (filter #(= path (.getName %)) (port-ids)))
         port (.open port-id "monome" PORT-OPEN-TIMEOUT)]
     port))
 
 (defn port-at
   "Returns the name of the serial port at index."
   [idx]
-  (.getName (nth (ports) idx)))
+  (.getName (nth (port-ids) idx)))
 
-(defn list-ports 
+(defn list-ports
   "Print out the available ports with an index number for future reference 
   with (port-at <i>)."
-  ([] (list-ports (ports) 0))
+  ([] (list-ports (port-ids) 0))
   ([ports i] 
    (when ports
      (println i ":" (.getName (first ports)))
@@ -54,13 +60,13 @@
 (defn- listen [m]
   (let [listener (proxy [SerialPortEventListener] []
                    (serialEvent [event] (input-handler m event)))]
-  (.addEventListener (:port m) listener)
-  (.notifyOnDataAvailable (:port m) true)))
+    (.addEventListener (:port m) listener)
+    (.notifyOnDataAvailable (:port m) true)))
 
 (defn add-handler 
   "Add an input handler function f to monome m.
   The function takes 3 args:
-    (f op x y)
+  (f op x y)
   Where op is either :up or :down."
   [m f]
   (dosync (alter (:handlers m) assoc f f)))
@@ -116,7 +122,7 @@
 
 (defn fill [m]
   (send-short m 145))
-  
+
 (defn brightness [m level]
   (send-short m (+ 160 level)))
 

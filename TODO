@@ -1,0 +1,7 @@
+* Implement protocol with byte-spec
+ -- I don't think this is necessary anymore...  After looking at the docs in
+your ruby monome-serial library I realized that it was way easier than I thought
+to build the messages.  Especially with the bit-banging math he gives you in the
+comments.
+
+* Sing a song of multitude.
