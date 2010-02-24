@@ -1,4 +1,5 @@
 (ns monome-serial.connector
+  (:refer-clojure :exclude [test])
   (:import 
      (java.io DataInputStream DataOutputStream
               BufferedInputStream BufferedOutputStream
@@ -11,7 +12,29 @@
 
 (defn ports [] (enumeration-seq (CommPortIdentifier/getPortIdentifiers)))
 
-(def event-log* (agent []))
+(defn port 
+  "Returns an opened serial port by name.
+  
+  (port \"/dev/ttyUSB0\")
+  "
+  [pname]
+  (let [port-id (first (filter #(= pname (.getName %)) (ports)))
+        port (.open port-id "monome" PORT-OPEN-TIMEOUT)]
+    port))
+
+(defn port-at
+  "Returns the name of the serial port at index."
+  [idx]
+  (.getName (nth (ports) idx)))
+
+(defn list-ports 
+  "Print out the available ports with an index number for future reference 
+  with (port-at <i>)."
+  ([] (list-ports (ports) 0))
+  ([ports i] 
+   (when ports
+     (println i ":" (.getName (first ports)))
+     (recur (next ports) (inc i)))))
 
 (defn- input-handler [m event]
   (when (= SerialPortEvent/DATA_AVAILABLE (.getEventType event))
@@ -25,7 +48,6 @@
                    :else     :unknown)
               x (bit-shift-right xy 4)
               y (bit-shift-right (byte (bit-shift-left xy 4)) 4)]
-          (send event-log* #(conj % [op x y]))
           (doseq [[_ handler] @(:handlers m)]
             (handler op x y)))))))
 
@@ -35,23 +57,22 @@
   (.addEventListener (:port m) listener)
   (.notifyOnDataAvailable (:port m) true)))
 
-(defn add-handler [m f]
+(defn add-handler 
+  "Add an input handler function f to monome m.
+  The function takes 3 args:
+    (f op x y)
+  Where op is either :up or :down."
+  [m f]
   (dosync (alter (:handlers m) assoc f f)))
 
-(defn remove-handler [m f]
+(defn remove-handler 
+  "Remove the given handler function f from monome m."
+  [m f]
   (dosync (alter (:handlers m) dissoc f)))
 
-(defn list-ports []
-  (doseq [port (ports)] 
-    (println "PORT: " (.getName port))))
-
-(defn get-port [pname]
-  (let [port-id (first (filter #(= pname (.getName %)) (ports)))
-        port (.open port-id "monome" PORT-OPEN-TIMEOUT)]
-    port))
-
-(defn open []
-  (let [port (get-port "/dev/ttyUSB0")
+(defn open [& [port-name]]
+  (let [port-name (or port-name "/dev/ttyUSB0")
+        port (port port-name)
         os (.getOutputStream port)
         is (.getInputStream port)
         bs (ByteArrayOutputStream.)
@@ -96,3 +117,11 @@
 (defn fill [m]
   (send-short m 145))
   
+(defn brightness [m level]
+  (send-short m (+ 160 level)))
+
+(defn test [m]
+  (send-short m 177))
+
+(defn shutdown [m]
+  (send-short m 178))
