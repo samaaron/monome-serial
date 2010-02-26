@@ -8,7 +8,7 @@
               ByteArrayOutputStream
               ByteArrayInputStream)
 
-     (gnu.io  CommPortIdentifier
+     (gnu.io CommPortIdentifier
              CommPort
              SerialPort
              SerialPortEventListener
@@ -18,8 +18,8 @@
 
 (defn port-ids [] (enumeration-seq (CommPortIdentifier/getPortIdentifiers)))
 
-(defn port 
-  "Returns an opened serial port. 
+(defn port
+  "Returns an opened serial port.
 
   (port \"/dev/ttyUSB0\")
   "
@@ -34,10 +34,10 @@
   (.getName (nth (port-ids) idx)))
 
 (defn list-ports
-  "Print out the available ports with an index number for future reference 
+  "Print out the available ports with an index number for future reference
   with (port-at <i>)."
   ([] (list-ports (port-ids) 0))
-  ([ports i] 
+  ([ports i]
    (when ports
      (println i ":" (.getName (first ports)))
      (recur (next ports) (inc i)))))
@@ -63,7 +63,7 @@
     (.addEventListener (:port m) listener)
     (.notifyOnDataAvailable (:port m) true)))
 
-(defn add-handler 
+(defn add-handler
   "Add an input handler function f to monome m.
   The function takes 3 args:
   (f op x y)
@@ -71,7 +71,7 @@
   [m f]
   (dosync (alter (:handlers m) assoc f f)))
 
-(defn remove-handler 
+(defn remove-handler
   "Remove the given handler function f from monome m."
   [m f]
   (dosync (alter (:handlers m) dissoc f)))
@@ -84,9 +84,9 @@
         bs (ByteArrayOutputStream.)
         ds (DataOutputStream. bs)
         handlers (ref {})
-        _  (.setSerialPortParams port 115200 
-                                 SerialPort/DATABITS_8 
-                                 SerialPort/STOPBITS_1 
+        _  (.setSerialPortParams port 115200
+                                 SerialPort/DATABITS_8
+                                 SerialPort/STOPBITS_1
                                  SerialPort/PARITY_NONE)
         m (with-meta {:port port
                       :handlers handlers
