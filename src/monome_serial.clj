@@ -1,2 +1,2 @@
 (ns monome-serial
-  (:require (monome-serial connector)))
+  (:require (monome-serial connectors)))
