@@ -2,22 +2,22 @@
   (:require [monome-serial.communicator :as communicator]
             [monome-serial.protocol     :as protocol]))
 
-(defrecord Monome [port handlers])
+(defrecord Monome [send handlers])
+
 (defrecord Frame  [col1 col2 col3 col4 col5 col6 col7 col8])
 
 (defn connect [port-name]
   "Connect to a monome with a given port identifier"
   (let [port   (communicator/open-port port-name)
-        monome (Monome. port (ref {}))]
-    (communicator/listen monome)
-    monome))
+        sender (fn [bytes] (communicator/write port bytes))]
+    (Monome. sender (ref {}))))
 
 (defn disconnect [monome]
   "Close the monome down"
   (communicator/close-port (:port monome)))
 
-(defn- send-bytes [monome bytes]
-  (communicator/write (:port monome) bytes))
+(defn send-bytes [monome bytes]
+  (apply (:send monome) [bytes]))
 
 (defn led-on [m x y]
   (send-bytes m (protocol/led-on-mesg x y)))
@@ -76,6 +76,15 @@
         "11100010"
         "00000000"
         ])
+
+(def s-90 [ "01111110"
+            "01010010"
+            "01110010"
+            "00000000"
+            "00011000"
+            "00010100"
+            "01111110"
+            "00010000"])
 
 (defn from-string-base2
   [s]
