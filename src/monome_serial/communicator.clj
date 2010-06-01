@@ -1,13 +1,13 @@
 (ns monome-serial.communicator
-  (:refer-clojure :exclude [test])
   (:import
      (gnu.io CommPortIdentifier
              SerialPort
              SerialPortEventListener
-             SerialPortEvent)))
+             SerialPortEvent)
+     (java.io OutputStream
+              InputStream)))
 
 (def PORT-OPEN-TIMEOUT 2000)
-
 (defrecord Port [raw-port out-stream in-stream])
 
 (defn port-ids
@@ -29,10 +29,13 @@
      (println idx ":" (.getName (first ports)))
      (recur (next ports) (inc idx)))))
 
+;;TODO fixme
 (defn close-port
   "Closes an open port."
   [port]
-  (.close (:raw-port port)))
+  (let [raw-port (:raw-port port)]
+    (.removeEventListener raw-port)
+    (.close raw-port)))
 
 (defn open-port
   "Returns an opened serial port.
@@ -53,46 +56,29 @@
 (defn write
   "Write a byte array to a port"
   [port bytes]
-  (.write (:out-stream port) bytes))
+  (.write ^OutputStream (:out-stream port) ^bytes bytes))
 
-;;TODO make send action an agent
-(defn send-coord [port mesg-id x y]
-  (let [coords (.byteValue (bit-or (bit-shift-left x 4) y))
-        mesg   (.byteValue mesg-id)
-        bytes  (byte-array 3 [mesg coords])]
-       (write (:out-stream port) bytes)))
-
-(defn send-frame [port row1 row2 row3 row4 row5 row6 row7 row8]
-  (let [mesg  (bit-or (bit-shift-left 8 4) 128)
-        bytes (byte-array 9 [(.byteValue mesg)
-                             (.byteValue row1)
-                             (.byteValue row2)
-                             (.byteValue row3)
-                             (.byteValue row4)
-                             (.byteValue row5)
-                             (.byteValue row6)
-                             (.byteValue row7)
-                             (.byteValue row8)])]
-    (write port bytes)))
-
-(defn- input-handler [m event]
+(defn- event-handler [^InputStream in-stream ^SerialPortEvent event handlers]
   (when (= SerialPortEvent/DATA_AVAILABLE (.getEventType event))
-    (let [port (.getInputStream (.getSource event))]
-      (while (pos? (.available port))
-        (let [op  (.read port)
-              xy  (.read port)
-              op (cond
-                   (= 0 op)  :down
-                   (= 16 op) :up
-                   :else     :unknown)
-              x (bit-shift-right xy 4)
-              y (bit-shift-right (.byteValue (bit-shift-left xy 4)) 4)]
-          (doseq [[_ handler] @(:handlers m)]
-            (handler op x y)))))))
+    (while (pos? (.available in-stream))
+        (let [op     (.read in-stream)
+              xy     (.read in-stream)
+              action (cond
+                      (= 0 op)  :press
+                      (= 16 op) :release
+                      :else     :unknown)
+              x      (bit-shift-right xy 4)
+              y      (bit-shift-right ^Integer (.byteValue ^Integer (bit-shift-left xy 4)) 4)]
+          (doseq [[_ handler] @handlers]
+            (handler action x y))))))
 
-(defn listen [monome]
-  (let [listener (proxy [SerialPortEventListener] []
-                   (serialEvent [event] (input-handler monome event)))
-        port     (get-in monome [:port :raw-port])]
-    (.addEventListener port listener)
-    (.notifyOnDataAvailable port true)))
+(defn stop-listening [port]
+  (.removeEventListener (:raw-port port)))
+
+(defn listen [port handlers]
+  (let [raw-port  (:raw-port port)
+        in-stream (:in-stream port)
+        listener  (reify SerialPortEventListener
+                    (serialEvent [_ event] (event-handler in-stream event handlers)))]
+    (.addEventListener raw-port listener)
+    (.notifyOnDataAvailable raw-port true)))

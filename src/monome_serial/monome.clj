@@ -2,112 +2,103 @@
   (:require [monome-serial.communicator :as communicator]
             [monome-serial.protocol     :as protocol]))
 
-(defrecord Monome [send handlers])
+(defrecord Monome [send close handlers open?])
 
-(defrecord Frame  [col1 col2 col3 col4 col5 col6 col7 col8])
-
-(defn connect [port-name]
+(defn connect
   "Connect to a monome with a given port identifier"
-  (let [port   (communicator/open-port port-name)
-        sender (fn [bytes] (communicator/write port bytes))]
-    (Monome. sender (ref {}))))
+  [port-name]
+  (let [port     (communicator/open-port port-name)
+        send     (fn [bytes] (communicator/write port bytes))
+        close    (fn []      (communicator/close-port port))
+        handlers (ref {})
+        open?    (ref true)
+        _        (communicator/listen port handlers)]
+    (Monome. send close handlers open?)))
 
-(defn disconnect [monome]
-  "Close the monome down"
-  (communicator/close-port (:port monome)))
+;;TODO fixme
+(defn disconnect
+  "Close the monome down. Currently crashes the JVM due to a bug in the Communicator code"
+  [monome]
+  (dosync
+   (apply (:close monome) [])
+   (ref-set (:open? monome) false)))
 
-(defn send-bytes [monome bytes]
+(defn- send-bytes [monome bytes]
   (apply (:send monome) [bytes]))
 
-(defn led-on [m x y]
+(defn led-on
+  "Turn a specific monome led on for given set of x y coords"
+  [m x y]
   (send-bytes m (protocol/led-on-mesg x y)))
 
-(defn led-off [m x y]
+(defn led-off
+  "Turn a specific monome led off for given set of x y coords"
+  [m x y]
   (send-bytes m (protocol/led-off-mesg x y)))
 
-(defn clear [m]
+(defn clear
+  "Turn all the monome leds off"
+  [m]
   (send-bytes m protocol/clear-mesg))
 
-(defn all [m]
+(defn all
+  "Turn all the monome leds on"
+  [m]
   (send-bytes m protocol/all-mesg))
 
-(defn test-mode-all [m]
+(defn test-mode-all
+  "Enter monome test mode (does not lose led state from normal mode) and turn all leds on.
+   Use normal-mode to restore led state"
+  [m]
   (send-bytes m protocol/test-mode-all-mesg))
 
-(defn test-mode-clear [m]
+(defn test-mode-clear
+  "Enter monome test mode (does not lose led state from normal mode) and turn all leds off
+   Use normal-mode to restore led state"
+  [m]
   (send-bytes m protocol/test-mode-clear-mesg))
 
-(defn normal-mode [m]
+(defn normal-mode
+  "Exit monome test mode and restore led state as it was before test mode was entered"
+  [m]
   (send-bytes m protocol/normal-mode-mesg))
 
-(defn frame [m frame]
+(defn frame
+  "Send a complete frame (8x8) to the monome. Frame is a sequence of 8 integers representing bit arrays for each row of the monome."
+  [m frame]
   (let [[row1 row2 row3 row4 row5 row6 row7 row8] frame]
       (send-bytes m (protocol/frame-mesg row1 row2 row3 row4 row5 row6 row7 row8))))
 
-(defn brightness [m intensity]
+(defn brightness
+  "Set the brightness for all the leds on the monome. Specify an integer intensity in the range 0-15"
+  [m intensity]
   (send-bytes m (protocol/intensity-mesg intensity)))
 
-(defn add-handler
-  "Add an input handler function f to monome m.
-  The function takes 3 args:
-  (f op x y)
-  Where op is either :up or :down."
-  [m f]
-  (dosync (alter (:handlers m) assoc f f)))
+(defn on-action
+  "Add an event handler function f to monome m.
+  The function takes 3 args: action x y
+  Where action is either :press or :release and x and y are the coords of the button that generated the event"
+  ([m f] (on-action m f f))
+  ([m f name]
+     (dosync (alter (:handlers m) assoc name f))))
+
+(defn on-press
+  "Add an event handler function f to monome m that only handles key press events
+  The function takes 2 args: x y
+  Where x and y are the coords of the button that was pressed"
+  ([m f] (on-press m f f))
+  ([m f name]
+     (on-action m (fn [op x y] (if (= op :press) (apply f [x y]))) name)))
+
+(defn on-release
+  "Add an event handler function f to monome m that only handles key release events
+  The function takes 2 args: x y
+  Where x and y are the coords of the button that was released"
+  ([m f] (on-release m f f))
+  ([m f name]
+     (on-action m (fn [op x y] (if (= op :release) (apply f [x y]))) name)))
 
 (defn remove-handler
-  "Remove the given handler function f from monome m."
-  [m f]
-  (dosync (alter (:handlers m) dissoc f)))
-
-(defn on [f x y]
-  (update-in f [x] bit-set y))
-
-(defn off [f x y]
-  (update-in f [x] bit-clear y))
-
-(def s [
-        "00000000"
-        "11100010"
-        "10000110"
-        "10001010"
-        "11101111"
-        "10100010"
-        "11100010"
-        "00000000"
-        ])
-
-(def s-90 [ "01111110"
-            "01010010"
-            "01110010"
-            "00000000"
-            "00011000"
-            "00010100"
-            "01111110"
-            "00010000"])
-
-(defn from-string-base2
-  [s]
-  (loop [str (reverse s)
-         count 0
-         idx   0]
-    (let [fst (first str)
-          rst (rest  str)
-          val (if (= fst \1)
-                (int (Math/pow 2 idx))
-                0)]
-
-      (if-not fst
-        count
-        (recur rst (+ val count) (inc idx))))))
-
-(defn frame-from-string-seq
-  [ss]
-  (map #(-> % reverse from-string-base2) ss))
-
-
-
-
-
-
-
+  "Remove the given handler function with name from monome m."
+  [m name]
+  (dosync (alter (:handlers m) dissoc name)))

@@ -2,11 +2,11 @@
 
 (defn- compose-byte
   [left-int right-int]
-  (bit-or (bit-shift-left left-int 4)
+  (bit-or (bit-shift-left ^Integer left-int 4)
           right-int))
 
 (defn- compose-byte-array [bytes]
-  (byte-array (count bytes) (map #(.byteValue %) bytes)))
+  (byte-array (count bytes) (map #(.byteValue ^Integer %) bytes)))
 
 (defn led-on-mesg [x y]
   (compose-byte-array [(compose-byte 2 0)
