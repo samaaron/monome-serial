@@ -68,11 +68,28 @@
   [m]
   (send-bytes m protocol/normal-mode-mesg))
 
+(defn row
+  "Send an integer representing the pattern for an entire row of 8 leds. If the row is 16 leds, then you can pass an extra pattern to this function to span them both"
+  ([m idx pattern]
+     (send-bytes m protocol/row-mesg idx pattern))
+  ([m idx pattern pattern2]
+     (send-bytes m protocol/row-mesg idx pattern pattern2)))
+
+(defn col
+  "Send an integer representing the pattern for an entire column of 8 leds. If the column is 16 leds, then you can pass an extra pattern to this function to span them both"
+  ([m idx pattern]
+     (send-bytes m protocol/col-mesg idx pattern))
+  ([m idx pattern pattern2]
+     (send-bytes m protocol/col-mesg idx pattern pattern2)))
+
 (defn frame
-  "Send a complete frame (8x8) to the monome. Frame is a sequence of 8 integers representing bit arrays for each row of the monome."
-  [m frame]
-  (let [[row1 row2 row3 row4 row5 row6 row7 row8] frame]
-      (send-bytes m (protocol/frame-mesg row1 row2 row3 row4 row5 row6 row7 row8))))
+  "Send a complete frame (8x8) to the monome. Frame is a sequence of 8 integers representing bit arrays for each row of the monome. You may specify an index if your monome consists of more than one e.g. 0-3 for a 256 monome."
+  ([m frame]
+     (let [[row1 row2 row3 row4 row5 row6 row7 row8] frame]
+       (send-bytes m (protocol/frame-mesg 0 row1 row2 row3 row4 row5 row6 row7 row8))))
+  ([m idx frame]
+     (let [[row1 row2 row3 row4 row5 row6 row7 row8] frame]
+       (send-bytes m (protocol/frame-mesg idx row1 row2 row3 row4 row5 row6 row7 row8)))))
 
 (defn brightness
   "Set the brightness for all the leds on the monome. Specify an integer intensity in the range 0-15"
