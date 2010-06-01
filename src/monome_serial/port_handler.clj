@@ -1,4 +1,4 @@
-(ns monome-serial.communicator
+(ns monome-serial.port-handler
   (:import
      (gnu.io CommPortIdentifier
              SerialPort

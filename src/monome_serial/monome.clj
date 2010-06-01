@@ -1,28 +1,28 @@
 (ns monome-serial.monome
-  (:require [monome-serial.communicator :as communicator]
-            [monome-serial.protocol     :as protocol]))
+  (:require [monome-serial.port-handler    :as port-handler]
+            [monome-serial.series-protocol :as protocol]))
 
 (defrecord Monome [send close handlers open?])
 
 (defn connect
   "Connect to a monome with a given port identifier"
   [port-name]
-  (let [port     (communicator/open-port port-name)
-        send     (fn [bytes] (communicator/write port bytes))
-        close    (fn []      (communicator/close-port port))
+  (let [port     (port-handler/open-port port-name)
+        send     (fn [bytes] (port-handler/write port bytes))
+        close    (fn []      (port-handler/close-port port))
         handlers (ref {})
         open?    (ref true)
-        _        (communicator/listen port handlers)]
+        _        (port-handler/listen port handlers)]
     (Monome. send close handlers open?)))
 
 (defn connected?
   "Determines whether a given monome is connected"
   [m]
-  @(:open?q m))
+  @(:open? m))
 
 ;;TODO fixme
 (defn disconnect
-  "Close the monome down. Currently crashes the JVM due to a bug in the Communicator code"
+  "Close the monome down. Currently crashes the JVM due to a bug in the port-handler code"
   [monome]
   (dosync
    (apply (:close monome) [])

@@ -1,4 +1,4 @@
-(ns monome-serial.protocol)
+(ns monome-serial.series-protocol)
 
 (defn- compose-byte
   [left-int right-int]
