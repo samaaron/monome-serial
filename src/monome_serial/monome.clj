@@ -4,17 +4,6 @@
 
 (defrecord Monome [send close handlers open?])
 
-(defn connect
-  "Connect to a monome with a given port identifier"
-  [port-name]
-  (let [port     (port-handler/open-port port-name)
-        send     (fn [bytes] (port-handler/write port bytes))
-        close    (fn []      (port-handler/close-port port))
-        handlers (ref {})
-        open?    (ref true)
-        _        (port-handler/listen port handlers)]
-    (Monome. send close handlers open?)))
-
 (defn connected?
   "Determines whether a given monome is connected"
   [m]
@@ -124,3 +113,30 @@
   "Remove the given handler function with name from monome m."
   [m name]
   (dosync (alter (:handlers m) dissoc name)))
+
+(defn intromation
+  [m]
+  (clear m)
+  (brightness m 0)
+  (all m)
+  (let [sleep-times [ 0, 0.072, 0.1030, 0.1159, 0.1236, 0.1287, 0.1324, 0.1352, 0.1373, 0.1390, 0.1404, 0.1416, 0.1426, 0.1435, 0.1442, 0.1448, 0.1278 ]]
+
+    (dotimes [i 16] (Thread/sleep (* 250 (nth sleep-times i))) (brightness m i))
+    (dotimes [i 16] (Thread/sleep (* 500 (nth sleep-times i))) (brightness m (- 15 i))))
+  (clear m)
+  (brightness m 15))
+
+
+(defn connect
+  "Connect to a monome with a given port identifier"
+  [port-name]
+  (let [port     (port-handler/open-port port-name)
+        send     (fn [bytes] (port-handler/write port bytes))
+        close    (fn []      (port-handler/close-port port))
+        handlers (ref {})
+        open?    (ref true)
+        _        (port-handler/listen port handlers)
+        monome   (Monome. send close handlers open?)]
+    (intromation monome)
+    monome))
+
