@@ -15,6 +15,11 @@
         _        (communicator/listen port handlers)]
     (Monome. send close handlers open?)))
 
+(defn connected?
+  "Determines whether a given monome is connected"
+  [m]
+  @(:open?q m))
+
 ;;TODO fixme
 (defn disconnect
   "Close the monome down. Currently crashes the JVM due to a bug in the Communicator code"
