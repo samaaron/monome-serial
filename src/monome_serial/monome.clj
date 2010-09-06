@@ -114,6 +114,11 @@
   [m name]
   (dosync (alter (:handlers m) dissoc name)))
 
+(defn remove-all-handlers
+  "Removes all of the given monome's handlers for both press and release events"
+  [m]
+  (dosync (ref-set (:handlers m) {})))
+
 (defn intromation
   [m]
   (clear m)
@@ -125,7 +130,6 @@
     (dotimes [i 16] (Thread/sleep (* 500 (nth sleep-times i))) (brightness m (- 15 i))))
   (clear m)
   (brightness m 15))
-
 
 (defn connect
   "Connect to a monome with a given port identifier"

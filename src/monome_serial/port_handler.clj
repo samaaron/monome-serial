@@ -40,9 +40,10 @@
 (defn open-port
   "Returns an opened serial port.
 
-  (port \"/dev/ttyUSB0\")"
+  (open-port \"/dev/ttyUSB0\")"
   [path]
-  (let [port-id (first (filter #(= path (.getName %)) (port-ids)))
+  (try
+    (let [port-id (first (filter #(= path (.getName %)) (port-ids)))
         raw-port  (.open port-id "monome" PORT-OPEN-TIMEOUT)
         out       (.getOutputStream raw-port)
         in        (.getInputStream  raw-port)
@@ -51,7 +52,9 @@
                                         SerialPort/STOPBITS_1
                                         SerialPort/PARITY_NONE)]
 
-    (Port. raw-port out in)))
+      (Port. raw-port out in))
+    (catch Exception e
+      (throw (Exception. (str "Couldn't connect to the port with path " path ))))))
 
 (defn write
   "Write a byte array to a port"
