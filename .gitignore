@@ -1,4 +1,6 @@
 lib/
 \.\#*
 \#*#
+tmp/
+native/
 
