@@ -18,7 +18,8 @@
    (ref-set (:open? monome) false)))
 
 (defn- send-bytes [monome bytes]
-  (apply (:send monome) [bytes]))
+  (apply (:send monome) [bytes])
+  monome)
 
 (defn led-on
   "Turn a specific monome led on for given set of x y coords"
@@ -91,7 +92,8 @@
   Where action is either :press or :release and x and y are the coords of the button that generated the event"
   ([m f] (on-action m f f))
   ([m f name]
-     (dosync (alter (:handlers m) assoc name f))))
+     (dosync (alter (:handlers m) assoc name f))
+     m))
 
 (defn on-press
   "Add an event handler function f to monome m that only handles key press events
@@ -99,7 +101,8 @@
   Where x and y are the coords of the button that was pressed"
   ([m f] (on-press m f f))
   ([m f name]
-     (on-action m (fn [op x y] (if (= op :press) (apply f [x y]))) name)))
+     (on-action m (fn [op x y] (if (= op :press) (apply f [x y]))) name)
+     m))
 
 (defn on-release
   "Add an event handler function f to monome m that only handles key release events
@@ -107,17 +110,20 @@
   Where x and y are the coords of the button that was released"
   ([m f] (on-release m f f))
   ([m f name]
-     (on-action m (fn [op x y] (if (= op :release) (apply f [x y]))) name)))
+     (on-action m (fn [op x y] (if (= op :release) (apply f [x y]))) name)
+     m))
 
 (defn remove-handler
   "Remove the given handler function with name from monome m."
   [m name]
-  (dosync (alter (:handlers m) dissoc name)))
+  (dosync (alter (:handlers m) dissoc name))
+  m)
 
 (defn remove-all-handlers
   "Removes all of the given monome's handlers for both press and release events"
   [m]
-  (dosync (ref-set (:handlers m) {})))
+  (dosync (ref-set (:handlers m) {}))
+  m)
 
 (defn intromation
   [m]
@@ -129,7 +135,8 @@
     (dotimes [i 16] (Thread/sleep (* 250 (nth sleep-times i))) (brightness m i))
     (dotimes [i 16] (Thread/sleep (* 500 (nth sleep-times i))) (brightness m (- 15 i))))
   (clear m)
-  (brightness m 15))
+  (brightness m 15)
+  m)
 
 (defn connect
   "Connect to a monome with a given port identifier"
