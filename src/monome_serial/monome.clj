@@ -25,7 +25,7 @@
     (apply send-fn [bytes])
     (recur (.take queue))))
 
-(defn- send-bytes [monome bytes]
+(defn send-bytes [monome bytes]
   (.put (:queue monome) bytes)
   monome)
 
