@@ -1,8 +1,9 @@
 (ns monome-serial.monome
   (:require [monome-serial.port-handler    :as port-handler]
-            [monome-serial.series-protocol :as protocol]))
+            [monome-serial.series-protocol :as protocol])
+  (:import (java.util.concurrent LinkedBlockingQueue)))
 
-(defrecord Monome [send close handlers open?])
+(defrecord Monome [send close handlers open? queue thread])
 
 (defn connected?
   "Determines whether a given monome is connected"
@@ -17,8 +18,15 @@
    (apply (:close monome) [])
    (ref-set (:open? monome) false)))
 
+(defn- work
+  "Pulls messages off the supplied queue and sends them on to the IO routine."
+  [queue send-fn]
+  (loop [bytes (.take queue)]
+    (apply send-fn [bytes])
+    (recur (.take queue))))
+
 (defn- send-bytes [monome bytes]
-  (apply (:send monome) [bytes])
+  (.put (:queue monome) bytes)
   monome)
 
 (defn led-on
@@ -148,8 +156,12 @@
         close    (fn []      (port-handler/close-port port))
         handlers (ref {})
         open?    (ref true)
+        queue    (LinkedBlockingQueue.)
+        worker   (Thread. #(work queue send))
         _        (port-handler/listen port handlers)
-        monome   (Monome. send close handlers open?)]
+        monome   (Monome. send close handlers open? queue worker)]
+    (.start worker)
     (intromation monome)
+
     monome))
 
