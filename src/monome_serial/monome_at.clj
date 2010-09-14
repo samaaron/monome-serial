@@ -1,4 +1,6 @@
 (ns monome-serial.monome-at
+  (:require [monome-serial.port-handler    :as port-handler]
+            [monome-serial.series-protocol :as protocol])
   (:use monome-serial.monome)
   (:use monome-serial.at-at))
 
