@@ -23,13 +23,15 @@
 
 (defn led-on
   "Turn a specific monome led on for given set of x y coords"
-  [m x y]
-  (send-bytes m (protocol/led-on-mesg x y)))
+  ([m coords] (apply led-on m coords))
+  ([m x y]
+     (send-bytes m (protocol/led-on-mesg x y))))
 
 (defn led-off
   "Turn a specific monome led off for given set of x y coords"
-  [m x y]
-  (send-bytes m (protocol/led-off-mesg x y)))
+  ([m coords] (apply led-off m coords))
+  ([m x y]
+     (send-bytes m (protocol/led-off-mesg x y))))
 
 (defn clear
   "Turn all the monome leds off"
