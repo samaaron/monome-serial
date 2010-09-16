@@ -69,7 +69,8 @@
                                         (apply bin-list->int row3)
                                         (apply bin-list->int row4)
                                         (apply bin-list->int row5)
-                                        (apply bin-list->int row6))))
+                                        (apply bin-list->int row6)
+                                        (apply bin-list->int row7))))
   ([m frame]
      (let [[row1 row2 row3 row4 row5 row6 row7 row8] frame]
        (send-bytes m (protocol/frame-mesg 0 row1 row2 row3 row4 row5 row6 row7 row8))))

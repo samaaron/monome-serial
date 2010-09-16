@@ -40,3 +40,39 @@
      (apply-at send-bytes time m (protocol/col-mesg idx pattern)))
   ([m time idx pattern pattern2]
      (apply-at send-bytes time m (protocol/col-mesg idx pattern pattern2))))
+
+(defn frame-at
+  "Send a complete frame (8x8) to the monome. Frame is a sequence of 8 integers representing bit arrays for each row of the monome. You may specify an index if your monome consists of more than one e.g. 0-3 for a 256 monome."
+  ([m time row0 row1 row2 row3 row4 row5 row6 row7]
+     (apply-at send-bytes time m (protocol/frame-mesg 0
+                                        (apply bin-list->int row0)
+                                        (apply bin-list->int row1)
+                                        (apply bin-list->int row2)
+                                        (apply bin-list->int row3)
+                                        (apply bin-list->int row4)
+                                        (apply bin-list->int row5)
+                                        (apply bin-list->int row6)
+                                        (apply bin-list->int row7))))
+  ([m time idx row0 row1 row2 row3 row4 row5 row6 row7]
+     (apply-at send-bytes time m (protocol/frame-mesg idx
+                                        (apply bin-list->int row0)
+                                        (apply bin-list->int row1)
+                                        (apply bin-list->int row2)
+                                        (apply bin-list->int row3)
+                                        (apply bin-list->int row4)
+                                        (apply bin-list->int row5)
+                                        (apply bin-list->int row6))))
+  ([m time frame]
+     (let [[row1 row2 row3 row4 row5 row6 row7 row8] frame]
+       (apply-at send-bytes time m (protocol/frame-mesg 0 row1 row2 row3 row4 row5 row6 row7 row8))))
+  ([m time idx frame]
+     (let [[row1 row2 row3 row4 row5 row6 row7 row8] frame]
+       (apply-at send-bytes time m (protocol/frame-mesg idx row1 row2 row3 row4 row5 row6 row7 row8)))))
+
+(defn clear-at
+  [m time]
+  (apply-at send-bytes time m protocol/clear-mesg))
+
+(defn all-at
+  [m time]
+   (apply-at send-bytes time m protocol/all-mesg))

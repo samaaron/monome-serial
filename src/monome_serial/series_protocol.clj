@@ -16,8 +16,8 @@
   (compose-byte-array [(compose-byte 3 0)
                        (compose-byte x y)]))
 
-(defn frame-mesg [idx row1 row2 row3 row4 row5 row6 row7 row8]
-  (compose-byte-array [(compose-byte 8 idx) row1 row2 row3 row4 row5 row6 row7 row8]))
+(defn frame-mesg [idx row0 row1 row2 row3 row4 row5 row6 row7]
+  (compose-byte-array [(compose-byte 8 idx) row0 row1 row2 row3 row4 row5 row6 row7]))
 
 (defn intensity-mesg [intensity]
   (compose-byte-array [(compose-byte 10 intensity)]))
