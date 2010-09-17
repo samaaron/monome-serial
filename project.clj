@@ -1,7 +1,5 @@
 (defproject org.clojars.samaaron/monome-serial "0.1.1"
   :description "An interface to the monome (http://monome.org)"
-  :repositories {"java.net" "http://download.java.net/maven/2/"
-                 "clojars" "http://clojars.org/repo"}
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/clojure-contrib "1.2.0"]
                  [byte-spec "0.1"]]
