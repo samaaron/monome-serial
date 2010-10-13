@@ -71,8 +71,11 @@
                       (= 16 op) :release
                       :else     :unknown)
               x      (bit-shift-right xy 4)
-              y      (bit-shift-right ^Integer (.byteValue ^Integer (bit-shift-left xy 4)) 4)]
-          (doseq [[_ handler] @handlers]
+              y      (bit-shift-right ^Integer (.byteValue ^Integer (bit-shift-left xy 4)) 4)
+              grouped-handlers @handlers
+              all-handlers (flatten (for [[_ group] grouped-handlers] (for [[_ handler] group] handler)))]
+
+          (doseq [handler all-handlers]
             (handler action x y))))))
 
 (defn stop-listening [port]
