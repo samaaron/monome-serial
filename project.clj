@@ -2,6 +2,6 @@
   :description "An interface to the monome (http://monome.org)"
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/clojure-contrib "1.2.0"]]
-  :dev-dependencies [[native-deps "1.0.4"]]
+  :dev-dependencies [[native-deps "1.0.5"]]
   :native-dependencies [[org.clojars.samaaron/rxtx "2.2.0"]])
 
