@@ -33,7 +33,7 @@ clj-monome-serial has a number of dependencies that need to be on your system fo
 Use
 ===
 
-clj-monome-serial provides a very basic to the monome. If you're after something more featureful you're advised to check out [Polynome](https://github.com/improcess/polynome)
+clj-monome-serial provides a very low-level monome API. If you're after something more featureful you're advised to check out [Polynome](https://github.com/improcess/polynome)
 
 Contributors
 ------------
