@@ -1,3 +1,6 @@
+.cake
+*.jar
+pom.xml
 lib/
 \.\#*
 \#*#
