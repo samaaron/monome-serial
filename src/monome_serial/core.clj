@@ -24,7 +24,7 @@
                                     (= 16 action-byte) :release
                                     :else     :unknown)
                             x      (bit-shift-right xy-byte 4)
-                            y      (bit-shift-right ^Integer (.byteValue ^Integer (bit-shift-left xy-byte 4)) 4)
+                            y      (bit-shift-right (.byteValue (bit-shift-left xy-byte 4)) 4)
                             grouped-handlers @handlers
                             all-handlers (flatten (for [[_ group] grouped-handlers] (for [[_ handler] group] handler)))]
 

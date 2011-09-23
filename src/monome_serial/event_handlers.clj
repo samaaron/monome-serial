@@ -1,5 +1,5 @@
 (ns monome-serial.event-handlers
-  (:use [clojure.contrib.core :only [dissoc-in]]))
+  (:use [clojure.core.incubator :only [dissoc-in]]))
 
 (defn on-action
   "Add an event handler function f to monome m within the specified group.

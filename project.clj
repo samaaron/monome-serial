@@ -1,6 +1,5 @@
-(defproject monome-serial "0.2.0"
+(defproject monome-serial "0.3.0"
   :description "An interface to the monome (http://monome.org)"
-  :dependencies [[org.clojure/clojure "1.2.0"]
-                 [org.clojure/clojure-contrib "1.2.0"]
-                 [serial-port "1.0.7"]])
-
+  :dependencies [[org.clojure/clojure "1.3.0-RC0"]
+                 [org.clojure/core.incubator "0.1.0"]
+                 [serial-port "1.1.0"]])

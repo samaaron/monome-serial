@@ -1,3 +1,22 @@
+
+
+
+                    MMMMMMMMMMMMMMMMMMMMMMMMMM
+                    MM                      MM
+                    MM  ooo  ooo  ooo  ooo  MM
+                    MM  ooo  ooo  ooo  ooo  MM
+                    MM                      MM
+                    MM  ooo  ooo  ooo  ooo  MM
+                    MM  ooo  ooo  ooo  ooo  MM
+    01100 101 11 1 0 1                      MM
+                    MM  ooo  ooo  ooo  ooo  MM
+                    MM  ooo  ooo  ooo  ooo  MM
+                    MM                      MM
+                    MM  ooo  ooo  ooo  ooo  MM
+                    MM  ooo  ooo  ooo  ooo  MM
+                    MM                      MM
+                    MMMMMMMMMMMMMMMMMMMMMMMMMM
+
 Clojure Monome Serial
 =====================
 
@@ -5,7 +24,7 @@ Communicate with a monome via the serial port. Receive button events, illuminate
 
 ## Dependencies
 
-* [Clojure 1.2](http://clojure.org)
+* [Clojure 1.2 or 1.3](http://clojure.org)
 * [serial-port](http://github.com/samaaron/serial-port)
 
 ## Installation
@@ -18,13 +37,11 @@ Next you need to pull in the dependencies. The easiest way is to use [cake](http
 
     cake deps
 
-Use
-===
+## Use
 
 clj-monome-serial provides a very low-level monome API. If you're after something more featureful you're advised to check out [Polynome](https://github.com/improcess/polynome)
 
-Contributors
-------------
+## Contributors
 
 * Sam Aaron
 * Jeff Rose
