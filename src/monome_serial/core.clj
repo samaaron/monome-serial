@@ -1,9 +1,40 @@
 (ns monome-serial.core
+  (:use [overtone.device.grid])
   (:require [serial-port :as port]
-            [monome-serial.animations   :as animations])
+            [monome-serial.animations :as animations]
+            [overtone.libs.handlers :as handlers]
+            [monome-serial.led :as led])
   (:import (java.util.concurrent LinkedBlockingQueue)))
 
-(defrecord Monome [send close handlers open? queue thread])
+(defrecord Monome [send close handler-pool open? queue thread]
+  Grid
+  (on-action
+    [this key f]
+    (handlers/add-handler (:handler-pool this) "*" key (fn [em]
+                                                         (f (:action em)
+                                                            (:x em)
+                                                            (:y em)))))
+  (remove-action-handler
+    [this key]
+    (handlers/remove-handler (:handler-pool this) "*" key))
+  (action-handlers
+    [this]
+    (let [p (:handler-pool this)
+          syncs (get (:syncs p) "*")
+          asyncs (get (:asyncs p) "*")]
+      (into #{} (concat (keys syncs) (keys asyncs)))) )
+  (led-set [this x y colour]
+    (if (= 0 colour)
+      (led/led-on this x y)
+      (led/led-off this x y)))
+  (led-set-all [this colour]
+    (if (= 0 colour)
+      (led/clear this)
+      (led/all this)))
+  (led-frame [this leds]
+    ;;TODO implement me
+    ;;deal with different monome sizes
+    nil))
 
 (defn connect
   "Connect to a monome with a given port identifier"
@@ -11,7 +42,7 @@
   (let [port     (port/open port-name)
         send-fn  (fn [bytes] (port/write port bytes))
         close    (fn []      (port/close port))
-        handlers (ref {})
+        handlers (handlers/mk-handler-pool (str "Monome Handlers - " port-name))
         open?    (ref true)
         queue    (LinkedBlockingQueue.)
         worker   (Thread. #(loop [bytes (.take queue)]
@@ -24,12 +55,8 @@
                                     (= 16 action-byte) :release
                                     :else     :unknown)
                             x      (bit-shift-right xy-byte 4)
-                            y      (bit-shift-right (.byteValue (bit-shift-left xy-byte 4)) 4)
-                            grouped-handlers @handlers
-                            all-handlers (flatten (for [[_ group] grouped-handlers] (for [[_ handler] group] handler)))]
-
-    (doseq [handler all-handlers]
-      (handler action x y))))]
+                            y      (bit-and 15 xy-byte)]
+                        (handlers/event handlers "*" :action action :x x :y y)))]
 
     (port/on-n-bytes port 2 parse-bytes)
     (.start worker)
