@@ -7,35 +7,7 @@
             [monome-serial.series-protocol :as protocol])
   (:import (java.util.concurrent LinkedBlockingQueue)))
 
-(defrecord Monome [send close handler-pool open? queue thread]
-  Grid
-  (on-action
-    [this key f]
-    (handlers/add-handler (:handler-pool this) "*" key (fn [em]
-                                                         (f (:action em)
-                                                            (:x em)
-                                                            (:y em)))))
-  (remove-action-handler
-    [this key]
-    (handlers/remove-handler (:handler-pool this) "*" key))
-  (action-handlers
-    [this]
-    (let [p (:handler-pool this)
-          syncs (get (:syncs p) "*")
-          asyncs (get (:asyncs p) "*")]
-      (into #{} (concat (keys syncs) (keys asyncs)))) )
-  (led-set [this x y colour]
-    (if (= 0 colour)
-      (led/led-on this x y)
-      (led/led-off this x y)))
-  (led-set-all [this colour]
-    (if (= 0 colour)
-      (led/clear this)
-      (led/all this)))
-  (led-frame [this leds]
-    ;;TODO implement me
-    ;;deal with different monome sizes
-    nil))
+(defrecord Monome [send close handlers open? queue thread])
 
 (defn connect
   "Connect to a monome with a given port identifier.
