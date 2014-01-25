@@ -20,7 +20,7 @@
 Clojure Monome Serial
 =====================
 
-Communicate with a monome via the serial port. Receive button events, illuminate lights, build the grid interface of your dreams.
+Communicate with a Monome via the serial port. Receive button events, illuminate lights, build the grid interface of your dreams.
 
 ## Dependencies
 
@@ -33,33 +33,41 @@ Clone into a dir on your machine:
 
     git clone git://github.com/improcess/monome-serial.git
 
-Next you need to pull in the dependencies. The easiest way is to use [cake](http://clojure-cake.org/) as it handles the native dependencies within `serial-port` effortlessly:
+Pull in dependencies with lein:
 
-    cake deps
+    lein deps
 
 ## Use
 
-clj-monome-serial provides a very low-level monome API. If you're after something more featureful you're advised to check out [Polynome](https://github.com/improcess/polynome)
+clj-monome-serial provides a very low-level Monome API. If you're after something more featureful you're advised to check out [Polynome](https://github.com/samaaron/polynome)
 
-### Versions
+### Protocol versions
 
-Monome's have progressed through a few version of protocols (http://monome.org/docs/tech:serial).
+Monome's have progressed through a few protocols (http://monome.org/docs/tech:serial).
 
 Currently supported:
 
 * protocol-070903 (default)
-* protocol-110626
+* protocol-110626 (new ~2013 Monomes)
 
-To test out a protocol simple:
+The best way to know which protocol to use is to test it out in a repl:
+
+`lein repl`
 
 ```clojure
+(use 'monome-serial.core)
+
+;;Try and connect with default protocol
 (def m (connect "/dev/tty.ID-OF-YOUR-DEVICE"))
 
-;;If you did not see any lights turn on try a different protocol:
+;;Did you see any lights turn?
+;;If not lets try another protocol
+
 (disconnect m)
 
-;;Unplug and plugin back in monome
+;;Unplug and plugin back in Monome
 
+;;Try 110626
 (def m (connect "/dev/tty.ID-OF-YOUR-DEVICE" :110626))
 ```
 
@@ -67,3 +75,4 @@ To test out a protocol simple:
 
 * Sam Aaron
 * Jeff Rose
+* [Joseph Wilk](http://blog.josephwilk.net)
