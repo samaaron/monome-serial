@@ -41,6 +41,28 @@ Next you need to pull in the dependencies. The easiest way is to use [cake](http
 
 clj-monome-serial provides a very low-level monome API. If you're after something more featureful you're advised to check out [Polynome](https://github.com/improcess/polynome)
 
+### Versions
+
+Monome's have progressed through a few version of protocols (http://monome.org/docs/tech:serial).
+
+Currently supported:
+
+* protocol-070903 (default)
+* protocol-110626
+
+To test out a protocol simple:
+
+```clojure
+(def m (connect "/dev/tty.ID-OF-YOUR-DEVICE"))
+
+;;If you did not see any lights turn on try a different protocol:
+(disconnect m)
+
+;;Unplug and plugin back in monome
+
+(def m (connect "/dev/tty.ID-OF-YOUR-DEVICE" :110626))
+```
+
 ## Contributors
 
 * Sam Aaron
