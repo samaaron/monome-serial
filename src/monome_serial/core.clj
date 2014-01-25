@@ -2,8 +2,6 @@
   (:use [overtone.device.grid])
   (:require [serial-port :as port]
             [monome-serial.animations :as animations]
-            [overtone.libs.handlers :as handlers]
-            [monome-serial.led :as led]
             [monome-serial.series-protocol :as protocol])
   (:import (java.util.concurrent LinkedBlockingQueue)))
 
@@ -26,7 +24,7 @@
      (let [port     (port/open port-name)
            send-fn  (fn [bytes] (port/write port bytes))
            close    (fn []      (port/close port))
-           handlers (handlers/mk-handler-pool (str "Monome Handlers - " port-name))
+           handlers (ref {})
            open?    (ref true)
            queue    (LinkedBlockingQueue.)
            worker   (Thread. #(loop [bytes (.take queue)]
@@ -39,8 +37,12 @@
                                        (= 16 action-byte) :release
                                        :else     :unknown)
                                x      (bit-shift-right xy-byte 4)
-                               y      (bit-and 15 xy-byte)]
-                           (handlers/event handlers "*" :action action :x x :y y)))]
+                               y      (bit-shift-right (.byteValue (bit-shift-left xy-byte 4)) 4)
+                               grouped-handlers @handlers
+                               all-handlers (flatten (for [[_ group] grouped-handlers] (for [[_ handler] group] handler)))]
+
+       (doseq [handler all-handlers]
+         (handler action x y))))]
 
        (port/on-n-bytes port 2 parse-bytes)
        (.start worker)
