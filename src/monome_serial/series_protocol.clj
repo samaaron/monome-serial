@@ -44,6 +44,8 @@
   (def release-mesg 32)
   (def key-press-bytes 3)
 
+  (def port-refresh-rate 230400)
+
   (defn bytes->key-press [action-byte x-byte y-byte]
     (let [action (cond
                   (= press-mesg action-byte)   :press
@@ -87,6 +89,8 @@
   (def press-mesg 0)
   (def release-mesg 16)
   (def key-press-bytes 2)
+
+  (def port-refresh-rate 115200)
 
   (defn bytes->key-press [action-byte xy-byte]
     (let [action (cond

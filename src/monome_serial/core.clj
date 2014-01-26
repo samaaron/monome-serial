@@ -21,7 +21,7 @@
        :070903 (protocol/load-070903!)
        (throw (Exception. "Unknown protocol!")))
 
-     (let [port     (serial/open port-name 230400)
+     (let [port     (serial/open port-name protocol/port-refresh-rate)
            send-fn  (fn [bytes] (serial/write port bytes))
            close    (fn []      (serial/close port))
            handlers (ref {})
