@@ -1,6 +1,6 @@
 (ns monome-serial.core
   (:use [overtone.device.grid])
-  (:require [serial-port :as port]
+  (:require [serial-port :as serial]
             [monome-serial.animations :as animations]
             [monome-serial.series-protocol :as protocol])
   (:import (java.util.concurrent LinkedBlockingQueue)))
@@ -21,9 +21,9 @@
        :070903 (protocol/load-070903!)
        (throw (Exception. "Unknown protocol!")))
 
-     (let [port     (port/open port-name)
-           send-fn  (fn [bytes] (port/write port bytes))
-           close    (fn []      (port/close port))
+     (let [port     (serial/open port-name 230400)
+           send-fn  (fn [bytes] (serial/write port bytes))
+           close    (fn []      (serial/close port))
            handlers (ref {})
            open?    (ref true)
            queue    (LinkedBlockingQueue.)
@@ -31,20 +31,15 @@
                                 (apply send-fn [bytes])
                                 (recur (.take queue))))
            monome   (Monome. send-fn close handlers open? queue worker)
-           parse-bytes (fn   [[action-byte xy-byte]]
-                         (let [action (cond
-                                       (= 0 action-byte)  :press
-                                       (= 16 action-byte) :release
-                                       :else     :unknown)
-                               x      (bit-shift-right xy-byte 4)
-                               y      (bit-shift-right (.byteValue (bit-shift-left xy-byte 4)) 4)
+           parse-bytes (fn [& [bytes]]
+                         (let [[action x y] (apply protocol/bytes->key-press bytes)
                                grouped-handlers @handlers
                                all-handlers (flatten (for [[_ group] grouped-handlers] (for [[_ handler] group] handler)))]
 
-       (doseq [handler all-handlers]
-         (handler action x y))))]
+                           (doseq [handler all-handlers]
+                             (handler action x y))))]
 
-       (port/on-n-bytes port 2 parse-bytes)
+       (serial/on-n-bytes port protocol/key-press-bytes parse-bytes)
        (.start worker)
        (animations/intromation monome)
 

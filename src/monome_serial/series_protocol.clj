@@ -38,7 +38,18 @@
                             (compose-byte 1 6) col 8 pattern2])))
 
   (def clear-mesg (compose-byte-array [(compose-byte 1 2)]))
-  (def all-mesg   (compose-byte-array [(compose-byte 1 3)])))
+  (def all-mesg   (compose-byte-array [(compose-byte 1 3)]))
+
+  (def press-mesg 33)
+  (def release-mesg 32)
+  (def key-press-bytes 3)
+
+  (defn bytes->key-press [action-byte x-byte y-byte]
+    (let [action (cond
+                  (= press-mesg action-byte)   :press
+                  (= release-mesg action-byte) :release
+                  :else     :unknown)]
+      [action x-byte y-byte])))
 
 (defn load-070903! []
   (defn led-on-mesg [x y]
@@ -72,6 +83,20 @@
   (def test-mode-all-mesg   (compose-byte-array [(compose-byte 11 1)]))
   (def test-mode-clear-mesg (compose-byte-array [(compose-byte 11 2)]))
   (def normal-mode-mesg     (compose-byte-array [(compose-byte 11 0)]))
+
+  (def press-mesg 0)
+  (def release-mesg 16)
+  (def key-press-bytes 2)
+
+  (defn bytes->key-press [action-byte xy-byte]
+    (let [action (cond
+                  (= press-mesg action-byte)   :press
+                  (= release-mesg action-byte) :release
+                  :else     :unknown)
+          x      (bit-shift-right xy-byte 4)
+          y      (bit-shift-right (.byteValue (bit-shift-left xy-byte 4)) 4)]
+      [action x y])))
+
 
   ;;       monmome serial protocol series 256/128/64
   ;;       brian crabtree - tehn@monome.org
@@ -245,4 +270,3 @@
   ;;       decode:         id match: byte 0 >> 4 == 1
   ;;                               a: byte 0 & 0x0f
   ;;                               d: byte 1
-)
